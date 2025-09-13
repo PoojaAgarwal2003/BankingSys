@@ -28,17 +28,16 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody SignupRequest request) {
         User user = userService.registerUser(request);
-        String token = jwtTokenUtil.generateToken(user.getEmail());
+        String token = jwtTokenUtil.generateToken(user.getUserId());
         return ResponseEntity.ok(new AuthenticationResponse(token));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
         Authentication authentication = authenticationProvider.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            new UsernamePasswordAuthenticationToken(request.getUserId(), request.getPassword())
         );
-        
-        String token = jwtTokenUtil.generateToken(request.getEmail());
+        String token = jwtTokenUtil.generateToken(request.getUserId());
         return ResponseEntity.ok(new AuthenticationResponse(token));
     }
 }
