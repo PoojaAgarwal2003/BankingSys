@@ -1,5 +1,6 @@
 package com.nab.account_service.controller;
 
+import com.nab.account_service.enums.KYCStatus;
 import com.nab.account_service.model.Account;
 import com.nab.account_service.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,11 @@ public class AccountController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public Account createAccount(@RequestBody Account account) {
-        return accountService.createAccount(account);
+    // Account creation is now handled through user registration
+    @PostMapping("/create")
+    public ResponseEntity<String> createAccount() {
+        return ResponseEntity.badRequest()
+            .body("Accounts can only be created through user registration");
     }
 
     @PutMapping("/{id}")
@@ -49,6 +52,13 @@ public class AccountController {
                     accountService.deleteAccount(id);
                     return ResponseEntity.ok().<Void>build();
                 })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/kyc-status")
+    public ResponseEntity<KYCStatus> getKycStatus(@PathVariable Long id) {
+        return accountService.getAccountById(id)
+                .map(account -> ResponseEntity.ok(account.getKycStatus()))
                 .orElse(ResponseEntity.notFound().build());
     }
 }
