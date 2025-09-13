@@ -16,14 +16,17 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    @GetMapping
-    public List<Account> getAllAccounts() {
-        return accountService.getAllAccounts();
+    @GetMapping("/me")
+    public ResponseEntity<List<Account>> getMyAccounts() {
+        String email = getCurrentUserEmail();
+        List<Account> accounts = accountService.getAccountsForEmail(email);
+        return ResponseEntity.ok(accounts);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
-        return accountService.getAccountById(id)
+        String email = getCurrentUserEmail();
+        return accountService.getAccountByIdAndEmail(id, email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -37,7 +40,7 @@ public class AccountController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
-        return accountService.getAccountById(id)
+        return accountService.getAccountByIdAndEmail(id, getCurrentUserEmail())
                 .map(existingAccount -> {
                     account.setId(id);
                     return ResponseEntity.ok(accountService.updateAccount(account));
@@ -47,18 +50,22 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
-        return accountService.getAccountById(id)
-                .map(account -> {
-                    accountService.deleteAccount(id);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        String email = getCurrentUserEmail();
+        boolean closed = accountService.closeAccount(id, email);
+        if (closed) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    private String getCurrentUserEmail() {
+        return org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @GetMapping("/{id}/kyc-status")
     public ResponseEntity<KYCStatus> getKycStatus(@PathVariable Long id) {
-        return accountService.getAccountById(id)
-                .map(account -> ResponseEntity.ok(account.getKycStatus()))
-                .orElse(ResponseEntity.notFound().build());
+    return accountService.getAccountByIdAndEmail(id, getCurrentUserEmail())
+        .map(account -> ResponseEntity.ok(account.getKycStatus()))
+        .orElse(ResponseEntity.notFound().build());
     }
 }

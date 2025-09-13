@@ -19,23 +19,23 @@ public class AccountService {
     
     private final AccountRepository accountRepository;
     
-    public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+    public List<Account> getAccountsForEmail(String email) {
+        return accountRepository.findByEmail(email);
     }
     
-    public Optional<Account> getAccountById(Long id) {
-        return accountRepository.findById(id);
+    public Optional<Account> getAccountByIdAndEmail(Long id, String email) {
+        return accountRepository.findByIdAndEmail(id, email);
     }
     
     @Transactional
     public Account createAccountForUser(User user) {
         Account account = new Account();
         account.setUserId(user.getId());
+        account.setEmail(user.getEmail());
         account.setAccountNo(generateAccountNumber());
         account.setBalance(user.getCashDeposited());
         account.setAccountStatus(AccountStatus.APPROVED);
         account.setKycStatus(KYCStatus.PENDING); // Explicitly set KYC status to PENDING
-        
         return accountRepository.save(account);
     }
     
@@ -43,8 +43,16 @@ public class AccountService {
         return accountRepository.save(account);
     }
     
-    public void deleteAccount(Long id) {
-        accountRepository.deleteById(id);
+    @Transactional
+    public boolean closeAccount(Long id, String email) {
+        Optional<Account> accountOpt = accountRepository.findByIdAndEmail(id, email);
+        if (accountOpt.isPresent()) {
+            Account account = accountOpt.get();
+            account.setAccountStatus(AccountStatus.CLOSED);
+            accountRepository.save(account);
+            return true;
+        }
+        return false;
     }
 
     @Transactional

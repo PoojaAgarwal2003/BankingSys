@@ -5,6 +5,8 @@ import com.nab.account_service.enums.KYCStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Data
 @Entity
@@ -35,6 +37,9 @@ public class Account {
 
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private String email;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -46,6 +51,14 @@ public class Account {
         }
         // Always set KYC status to PENDING for new accounts
         kycStatus = KYCStatus.PENDING;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @PreUpdate
