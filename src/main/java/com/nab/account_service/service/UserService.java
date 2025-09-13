@@ -19,8 +19,8 @@ public class UserService {
 
     @Transactional
     public User registerUser(SignupRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email is already in use");
+        if (userRepository.existsByUserId(request.getUserId())) {
+            throw new RuntimeException("User ID is already in use");
         }
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -28,6 +28,7 @@ public class UserService {
         }
 
         User user = new User();
+        user.setUserId(request.getUserId());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
@@ -37,10 +38,8 @@ public class UserService {
         user.setCashDeposited(request.getCashDeposited());
 
         user = userRepository.save(user);
-        
         // Create account with initial deposit
         Account account = accountService.createAccountForUser(user);
-        
         return user;
     }
 
@@ -49,8 +48,8 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+    public User getUserByUserId(String userId) {
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

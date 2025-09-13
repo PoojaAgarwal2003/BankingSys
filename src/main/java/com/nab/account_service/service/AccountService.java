@@ -19,18 +19,18 @@ public class AccountService {
     
     private final AccountRepository accountRepository;
     
-    public List<Account> getAccountsForEmail(String email) {
-        return accountRepository.findByEmail(email);
+    public List<Account> getAccountsForUserId(String userId) {
+        return accountRepository.findByUserId(userId);
     }
     
-    public Optional<Account> getAccountByIdAndEmail(Long id, String email) {
-        return accountRepository.findByIdAndEmail(id, email);
+    public Optional<Account> getAccountByIdAndUserId(Long id, String userId) {
+        return accountRepository.findByIdAndUserId(id, userId);
     }
     
     @Transactional
     public Account createAccountForUser(User user) {
         Account account = new Account();
-        account.setUserId(user.getId());
+        account.setUserId(user.getUserId());
         account.setEmail(user.getEmail());
         account.setAccountNo(generateAccountNumber());
         account.setBalance(user.getCashDeposited());
@@ -44,8 +44,8 @@ public class AccountService {
     }
     
     @Transactional
-    public boolean closeAccount(Long id, String email) {
-        Optional<Account> accountOpt = accountRepository.findByIdAndEmail(id, email);
+    public boolean closeAccount(Long id, String userId) {
+        Optional<Account> accountOpt = accountRepository.findByIdAndUserId(id, userId);
         if (accountOpt.isPresent()) {
             Account account = accountOpt.get();
             account.setAccountStatus(AccountStatus.CLOSED);
@@ -53,6 +53,9 @@ public class AccountService {
             return true;
         }
         return false;
+    }
+    public boolean accountNoExists(String accountNo) {
+        return accountRepository.findByAccountNo(accountNo).isPresent();
     }
 
     @Transactional
@@ -63,6 +66,16 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    public boolean closeAccountsByUserId(String userId) {
+        List<Account> accounts = accountRepository.findByUserId(userId);
+        if (accounts.isEmpty()) return false;
+        for (Account account : accounts) {
+            account.setAccountStatus(AccountStatus.CLOSED);
+            accountRepository.save(account);
+        }
+        return true;
+    }
+
     private String generateAccountNumber() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder();
@@ -70,5 +83,9 @@ public class AccountService {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    public Optional<Account> getAccountByAccountNo(String accountNo) {
+        return accountRepository.findByAccountNo(accountNo);
     }
 }

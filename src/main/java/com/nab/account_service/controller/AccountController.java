@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -18,15 +19,15 @@ public class AccountController {
 
     @GetMapping("/me")
     public ResponseEntity<List<Account>> getMyAccounts() {
-        String email = getCurrentUserEmail();
-        List<Account> accounts = accountService.getAccountsForEmail(email);
+        String userId = getCurrentUserId();
+        List<Account> accounts = accountService.getAccountsForUserId(userId);
         return ResponseEntity.ok(accounts);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
-        String email = getCurrentUserEmail();
-        return accountService.getAccountByIdAndEmail(id, email)
+        String userId = getCurrentUserId();
+        return accountService.getAccountByIdAndUserId(id, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -40,7 +41,8 @@ public class AccountController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
-        return accountService.getAccountByIdAndEmail(id, getCurrentUserEmail())
+        String userId = getCurrentUserId();
+        return accountService.getAccountByIdAndUserId(id, userId)
                 .map(existingAccount -> {
                     account.setId(id);
                     return ResponseEntity.ok(accountService.updateAccount(account));
@@ -50,22 +52,56 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
-        String email = getCurrentUserEmail();
-        boolean closed = accountService.closeAccount(id, email);
+        String userId = getCurrentUserId();
+        boolean closed = accountService.closeAccount(id, userId);
         if (closed) {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.notFound().build();
         }
     }
-    private String getCurrentUserEmail() {
+    private String getCurrentUserId() {
         return org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+    @GetMapping("/{accountNo}")
+    public ResponseEntity<Boolean> checkAccountNo(@PathVariable String accountNo) {
+        boolean exists = accountService.accountNoExists(accountNo);
+        return ResponseEntity.ok(exists);
     }
 
     @GetMapping("/{id}/kyc-status")
     public ResponseEntity<KYCStatus> getKycStatus(@PathVariable Long id) {
-    return accountService.getAccountByIdAndEmail(id, getCurrentUserEmail())
+    return accountService.getAccountByIdAndUserId(id, getCurrentUserId())
         .map(account -> ResponseEntity.ok(account.getKycStatus()))
         .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Account>> getAccountsByUserId(@PathVariable String userId) {
+        List<Account> accounts = accountService.getAccountsForUserId(userId);
+        if (accounts.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(accounts);
+    }
+
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteAccountsByUserId(@PathVariable String userId) {
+        boolean closed = accountService.closeAccountsByUserId(userId);
+        if (closed) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/accountNo/{accountNo}/status")
+    public ResponseEntity<String> getAccountStatusByAccountNo(@PathVariable String accountNo) {
+        Optional<Account> account = accountService.getAccountByAccountNo(accountNo);
+        if (account.isPresent()) {
+            return ResponseEntity.ok(account.get().getAccountStatus().name());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

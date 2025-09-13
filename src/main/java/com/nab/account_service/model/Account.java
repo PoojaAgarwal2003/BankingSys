@@ -17,7 +17,7 @@ public class Account {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(nullable = false, unique = true)
     private String accountNo;
