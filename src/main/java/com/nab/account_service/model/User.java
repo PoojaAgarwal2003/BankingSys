@@ -1,34 +1,37 @@
 package com.nab.account_service.model;
 
-import com.nab.account_service.enums.AccountStatus;
-import com.nab.account_service.enums.KYCStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "accounts")
-public class Account {
+@Table(name = "users")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
 
     @Column(nullable = false, unique = true)
-    private String accountNo;
+    private String email;
 
     @Column(nullable = false)
-    private Double balance;
+    private String phoneNo;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountStatus accountStatus;
+    private String password;
 
-    @Enumerated(EnumType.STRING)
-    private KYCStatus kycStatus;
+    @Column(nullable = false)
+    private String accountType;
+
+    @Column(nullable = false)
+    private Double cashDeposited;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -38,14 +41,9 @@ public class Account {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (balance == null) {
-            balance = 0.0;
+        if (cashDeposited == null) {
+            cashDeposited = 0.0;
         }
-        if (accountStatus == null) {
-            accountStatus = AccountStatus.PENDING;
-        }
-        // Always set KYC status to PENDING for new accounts
-        kycStatus = KYCStatus.PENDING;
     }
 
     @PreUpdate
