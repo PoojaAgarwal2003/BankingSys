@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -87,5 +88,20 @@ public class AccountService {
 
     public Optional<Account> getAccountByAccountNo(String accountNo) {
         return accountRepository.findByAccountNo(accountNo);
+    }
+
+
+    public boolean updateBalance(String accountNo, java.math.BigDecimal amountChange) {
+        java.util.Optional<Account> accountOpt = accountRepository.findByAccountNo(accountNo);
+        if (accountOpt.isEmpty()) return false;
+
+        Account account = accountOpt.get();
+        java.math.BigDecimal currentBalance = java.math.BigDecimal.valueOf(account.getBalance());
+        java.math.BigDecimal newBalance = currentBalance.add(amountChange);
+        if (newBalance.compareTo(java.math.BigDecimal.ZERO) < 0) return false;
+
+        account.setBalance(newBalance.doubleValue());
+        accountRepository.save(account);
+        return true;
     }
 }

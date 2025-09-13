@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,5 +104,23 @@ public class AccountController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+
+    @PostMapping("/{accountNo}/balance")
+    public ResponseEntity<String> updateBalance(
+            @PathVariable String accountNo,
+            @RequestBody BalanceUpdateRequest request) {
+        boolean success = accountService.updateBalance(accountNo, request.getAmountChange());
+        if (success) {
+            return ResponseEntity.ok("SUCCESS");
+        } else {
+            return ResponseEntity.badRequest().body("FAILED");
+        }
+    }
+    public static class BalanceUpdateRequest {
+        private BigDecimal amountChange;
+        public BigDecimal getAmountChange() { return amountChange; }
+        public void setAmountChange(BigDecimal amountChange) { this.amountChange = amountChange; }
     }
 }
