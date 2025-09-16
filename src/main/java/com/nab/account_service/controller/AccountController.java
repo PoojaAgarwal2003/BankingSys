@@ -6,15 +6,17 @@ import com.nab.account_service.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.nab.account_service.repository.AccountRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.Map;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
 
+    @Autowired
+    private AccountRepository accountRepository;
     @Autowired
     private AccountService accountService;
 
@@ -70,9 +72,9 @@ public class AccountController {
         return ResponseEntity.ok(exists);
     }
 
-    @GetMapping("/{id}/kyc-status")
-    public ResponseEntity<KYCStatus> getKycStatus(@PathVariable Long id) {
-    return accountService.getAccountByIdAndUserId(id, getCurrentUserId())
+    @GetMapping("/user/{user_id}/kyc-status")
+    public ResponseEntity<KYCStatus> getKycStatus(@PathVariable String user_id) {
+    return accountService.getFirstAccountByUserId(user_id)
         .map(account -> ResponseEntity.ok(account.getKycStatus()))
         .orElse(ResponseEntity.notFound().build());
     }
@@ -123,4 +125,19 @@ public class AccountController {
         public BigDecimal getAmountChange() { return amountChange; }
         public void setAmountChange(BigDecimal amountChange) { this.amountChange = amountChange; }
     }
+
+    @PatchMapping("/user/{userId}/kyc-status")
+public ResponseEntity<?> updateKycStatus(@PathVariable String userId, @RequestBody Map<String, String> body) {
+    // Fetch the account by userId
+    List<Account> accounts = accountRepository.findByUserId(userId);
+    if (accounts.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+    Account account = accounts.get(0);
+    // Update the KYC status
+    String newStatus = body.get("kycStatus");
+    account.setKycStatus(KYCStatus.valueOf(newStatus));
+    accountRepository.save(account);
+    return ResponseEntity.ok().build();
+}
 }

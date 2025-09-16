@@ -23,10 +23,18 @@ public class AccountService {
     public List<Account> getAccountsForUserId(String userId) {
         return accountRepository.findByUserId(userId);
     }
-    
     public Optional<Account> getAccountByIdAndUserId(Long id, String userId) {
         return accountRepository.findByIdAndUserId(id, userId);
     }
+
+    public Optional<Account> getFirstAccountByUserId(String userId) {
+        List<Account> accounts = accountRepository.findByUserId(userId);
+        if (accounts.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(accounts.get(0));
+    }
+
     
     @Transactional
     public Account createAccountForUser(User user) {
