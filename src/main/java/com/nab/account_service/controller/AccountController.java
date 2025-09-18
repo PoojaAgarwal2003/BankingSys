@@ -42,27 +42,27 @@ public class AccountController {
             .body("Accounts can only be created through user registration");
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
-        String userId = getCurrentUserId();
-        return accountService.getAccountByIdAndUserId(id, userId)
-                .map(existingAccount -> {
-                    account.setId(id);
-                    return ResponseEntity.ok(accountService.updateAccount(account));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
+    // @PutMapping("/{id}")
+    // public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
+    //     String userId = getCurrentUserId();
+    //     return accountService.getAccountByIdAndUserId(id, userId)
+    //             .map(existingAccount -> {
+    //                 account.setId(id);
+    //                 return ResponseEntity.ok(accountService.updateAccount(account));
+    //             })
+    //             .orElse(ResponseEntity.notFound().build());
+    // }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
-        String userId = getCurrentUserId();
-        boolean closed = accountService.closeAccount(id, userId);
-        if (closed) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+    // @DeleteMapping("/{id}")
+    // public ResponseEntity<Void> deleteAccount(@PathVariable Long id) {
+    //     String userId = getCurrentUserId();
+    //     boolean closed = accountService.closeAccount(id, userId);
+    //     if (closed) {
+    //         return ResponseEntity.ok().build();
+    //     } else {
+    //         return ResponseEntity.notFound().build();
+    //     }
+    // }
     private String getCurrentUserId() {
         return org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
     }

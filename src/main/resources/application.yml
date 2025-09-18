@@ -15,7 +15,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: account-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  expiration: 40 # 24 hours in seconds
+  expiration: 600 # 24 hours in seconds

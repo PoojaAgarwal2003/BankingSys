@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/accounts/accountNo/**").permitAll()
                 .requestMatchers("/api/accounts/user/*/kyc-status").permitAll()
                 .requestMatchers("/api/accounts/*/balance").permitAll()
+                .requestMatchers("/user/*/kyc-status").permitAll()
+    // ...other matchers...
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
